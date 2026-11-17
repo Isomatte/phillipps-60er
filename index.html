@@ -91,6 +91,30 @@
     object-position: 45% 40%;
     display: block;
   }
+  /* Diashow über dem Startfoto – läuft synchron zum Lied */
+  .slides { position: absolute; inset: 0; }
+  .slide {
+    position: absolute; inset: 0; overflow: hidden;
+    opacity: 0; transition: opacity 1.2s ease;
+  }
+  .slide.on { opacity: 1; }
+  .slide .blur {
+    position: absolute; inset: -24px;
+    background-size: cover; background-position: center;
+    filter: blur(18px) brightness(.5) saturate(1.1);
+  }
+  .photo .slide img {
+    position: relative;
+    object-fit: contain; object-position: center;
+    transform-origin: center;
+  }
+  .slide.on img, .slide.out img { animation: kenburns 7s ease-out forwards; }
+  @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.07); } }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition-duration: .3s; }
+    .slide.on img, .slide.out img { animation: none; }
+  }
+
   .badge {
     position: relative;
     margin-top: -34px;
@@ -238,6 +262,10 @@
 
   <div class="photo">
     <img src="philipp.jpg" alt="Philipp" width="1461" height="1162" decoding="async">
+    <div class="slides" aria-hidden="true">
+      <div class="slide"><div class="blur"></div><img alt="" decoding="async"></div>
+      <div class="slide"><div class="blur"></div><img alt="" decoding="async"></div>
+    </div>
   </div>
   <div class="badge" aria-hidden="true">60</div>
 
@@ -316,8 +344,46 @@
 
   audio.addEventListener('playing', function () { btn.classList.remove('is-loading'); setPlaying(true); });
   audio.addEventListener('pause', function () { setPlaying(false); });
-  audio.addEventListener('ended', function () { setPlaying(false); audio.currentTime = 0; render(); });
+  audio.addEventListener('ended', function () { setPlaying(false); audio.currentTime = 0; render(); showSlide(-1); });
   audio.addEventListener('timeupdate', render);
+
+  // Diashow: Bild-Index folgt der Liedposition (dia/01.jpg … dia/45.jpg)
+  var SLIDE_COUNT = 45;
+  var slideEls = document.querySelectorAll('.slide');
+  var shown = -1, front = 0, cache = {};
+  function slideSrc(i) { return 'dia/' + String(i + 1).padStart(2, '0') + '.jpg'; }
+  function preload(i) {
+    if (i < 0 || i >= SLIDE_COUNT || cache[i]) return;
+    cache[i] = new Image(); cache[i].src = slideSrc(i);
+  }
+  function showSlide(i) {
+    if (i === shown) return;
+    shown = i;
+    if (i < 0) { slideEls.forEach(function (el) { if (el.classList.contains('on')) el.classList.replace('on', 'out'); }); return; }
+    var next = slideEls[1 - front], prev = slideEls[front];
+    var img = next.querySelector('img'), src = slideSrc(i);
+    var reveal = function () {
+      if (shown !== i) return;
+      next.classList.remove('out'); void next.offsetWidth;
+      next.classList.add('on');
+      if (prev.classList.contains('on')) prev.classList.replace('on', 'out');
+      front = 1 - front;
+    };
+    next.classList.remove('on', 'out');
+    next.querySelector('.blur').style.backgroundImage = 'url("' + src + '")';
+    img.onload = reveal;
+    img.src = src;
+    if (img.complete && img.naturalWidth) reveal();
+    preload(i + 1); preload(i + 2);
+  }
+  function syncSlides() {
+    var d = audio.duration;
+    if (!d || (audio.paused && audio.currentTime === 0)) { showSlide(-1); return; }
+    showSlide(Math.min(SLIDE_COUNT - 1, Math.floor(audio.currentTime / d * SLIDE_COUNT)));
+  }
+  audio.addEventListener('timeupdate', syncSlides);
+  audio.addEventListener('seeked', syncSlides);
+  audio.addEventListener('play', function () { preload(0); preload(1); });
   audio.addEventListener('loadedmetadata', function () { dur.textContent = fmt(audio.duration); render(); });
   audio.addEventListener('durationchange', function () { dur.textContent = fmt(audio.duration); });
 
