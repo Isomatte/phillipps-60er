@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Philipp wird 60</title>
-<meta name="description" content="Alles Gute zum 60. Geburtstag, Philipp! Ein Lied für dich: blink-182 – What's My Age Again?">
+<meta name="description" content="Philipp wird 60 – schön, dass ihr mitfeiert! Das Lied des Abends: blink-182 – What's My Age Again?">
 <meta property="og:title" content="Philipp wird 60">
-<meta property="og:description" content="Alles Gute zum 60. Geburtstag! Ein Lied für dich.">
+<meta property="og:description" content="Schön, dass ihr mitfeiert! Hier gibt’s das Lied des Abends.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://phillipps-60er.de/">
 <meta property="og:image" content="https://phillipps-60er.de/philipp.jpg">
@@ -234,19 +234,19 @@
 <div class="sparks" aria-hidden="true"></div>
 
 <main>
-  <p class="eyebrow">Herzlichen Glückwunsch</p>
+  <p class="eyebrow">Willkommen zur Feier</p>
 
   <div class="photo">
     <img src="philipp.jpg" alt="Philipp" width="1461" height="1162" decoding="async">
   </div>
   <div class="badge" aria-hidden="true">60</div>
 
-  <h1>Alles Gute,<br><em>Philipp!</em></h1>
-  <p class="sub">Zum 60. Geburtstag – ein Lied, das die wichtigste Frage des Tages stellt.</p>
+  <h1><em>Philipp</em><br>wird 60</h1>
+  <p class="sub">Schön, dass ihr da seid! Hier ist das Lied des Abends – es stellt die wichtigste Frage des Tages.</p>
 
   <section class="player" aria-label="Musikplayer">
     <div class="track">
-      <span class="label">Jetzt anhören</span>
+      <span class="label">Das Lied des Abends</span>
       <span class="title">What's My Age Again?</span>
       <span class="artist">blink-182</span>
     </div>
@@ -265,9 +265,9 @@
     <audio id="audio" src="lied.mp3" preload="metadata"></audio>
   </section>
 
-  <p class="note">Spoiler: Es ist 60. Aber das glaubt dir sowieso keiner.</p>
+  <p class="note">Spoiler: Es ist 60. Aber das glaubt mir sowieso keiner.</p>
 
-  <footer>Auf die nächsten Jahrzehnte</footer>
+  <footer>Danke, dass ihr mitfeiert</footer>
 </main>
 
 <script>
@@ -352,6 +352,10 @@
     var step = { ArrowRight: 5, ArrowUp: 5, ArrowLeft: -5, ArrowDown: -5 }[e.key];
     if (step) { e.preventDefault(); audio.currentTime = Math.min(audio.duration, Math.max(0, audio.currentTime + step)); }
   });
+
+  // Autoplay versuchen – klappt meist nicht (v. a. iOS), dann bleibt der Button
+  var tryAuto = audio.play();
+  if (tryAuto && tryAuto.catch) tryAuto.catch(function () { setPlaying(false); });
 
   // dezente Funken
   var sparks = document.querySelector('.sparks');
